@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz Divertido 🎉</title>
+  <style>
+    body {
+      background-color: #f0f8ff;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #4a4aff;
+      margin-bottom: 30px;
+    }
+
+    #quiz-container {
+      background-color: #fff;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .pergunta {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .opcao {
+      display: block;
+      background-color: #ffd966;
+      border: none;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px auto;
+      width: 80%;
+      font-size: 20px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    .opcao:hover {
+      background-color: #ffec99;
+    }
+
+    #feedback {
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+
+    .certo {
+      color: green;
+    }
+
+    .errado {
+      color: red;
+    }
+
+    #final {
+      font-size: 24px;
+      color: #800080;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Quiz de Matemática 🧠</h1>
+
+  <div id="quiz-container">
+    <div id="pergunta" class="pergunta"></div>
+    <div id="opcoes"></div>
+    <div id="feedback"></div>
+    <div id="final"></div>
+  </div>
+
+  <script>
+    const perguntas = [
+      {
+        texto: "Quanto é 3 + 2?",
+        opcoes: ["4", "5", "6"],
+        correta: "5"
+      },
+      {
+        texto: "Quanto é 10 - 4?",
+        opcoes: ["6", "5", "4"],
+        correta: "6"
+      },
+      {
+        texto: "Quanto é 2 x 3?",
+        opcoes: ["5", "6", "7"],
+        correta: "6"
+      },
+      {
+        texto: "Quanto é 8 ÷ 2?",
+        opcoes: ["4", "6", "2"],
+        correta: "4"
+      }
+    ];
+
+    let indice = 0;
+    let pontos = 0;
+
+    function mostrarPergunta() {
+      const perguntaAtual = perguntas[indice];
+      document.getElementById("pergunta").textContent = perguntaAtual.texto;
+
+      const opcoesDiv = document.getElementById("opcoes");
+      opcoesDiv.innerHTML = "";
+
+      perguntaAtual.opcoes.forEach(opcao => {
+        const botao = document.createElement("button");
+        botao.textContent = opcao;
+        botao.className = "opcao";
+        botao.onclick = () => verificarResposta(opcao);
+        opcoesDiv.appendChild(botao);
+      });
+
+      document.getElementById("feedback").textContent = "";
+    }
+
+    function verificarResposta(resposta) {
+      const correta = perguntas[indice].correta;
+      const feedback = document.getElementById("feedback");
+
+      if (resposta === correta) {
+        feedback.textContent = "✅ Acertou!";
+        feedback.className = "certo";
+        pontos++;
+      } else {
+        feedback.textContent = "❌ Errou!";
+        feedback.className = "errado";
+      }
+
+      setTimeout(() => {
+        indice++;
+        if (indice < perguntas.length) {
+          mostrarPergunta();
+        } else {
+          finalizarQuiz();
+        }
+      }, 1000);
+    }
+
+    function finalizarQuiz() {
+      document.getElementById("pergunta").style.display = "none";
+      document.getElementById("opcoes").style.display = "none";
+      document.getElementById("feedback").style.display = "none";
+      document.getElementById("final").textContent =
+        `🎉 Fim do quiz! Você acertou ${pontos} de ${perguntas.length} perguntas.`;
+    }
+
+    // Iniciar quiz
+    mostrarPergunta();
+  </script>
+
+</body>
+</html>
