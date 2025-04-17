@@ -1,163 +1,152 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Quiz Divertido 🎉</title>
+  <title>Quiz - Festival de Parintins</title>
   <style>
     body {
-      background-color: #f0f8ff;
-      font-family: 'Comic Sans MS', cursive, sans-serif;
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      background: linear-gradient(to right, #ffcccb, #add8e6);
+      padding: 20px;
       text-align: center;
-      padding: 40px;
     }
-
     h1 {
-      color: #4a4aff;
-      margin-bottom: 30px;
+      color: #4b0082;
     }
-
-    #quiz-container {
-      background-color: #fff;
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 600px;
-      margin: auto;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .pergunta {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #333;
-    }
-
-    .opcao {
-      display: block;
-      background-color: #ffd966;
-      border: none;
-      border-radius: 10px;
-      padding: 15px;
+    .question-container {
+      background-color: white;
+      border-radius: 12px;
+      padding: 20px;
       margin: 10px auto;
-      width: 80%;
-      font-size: 20px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    button {
+      background-color: #4b0082;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 8px;
       cursor: pointer;
-      transition: background-color 0.3s;
     }
-
-    .opcao:hover {
-      background-color: #ffec99;
+    button:hover {
+      background-color: #360063;
     }
-
-    #feedback {
-      font-size: 22px;
+    .feedback {
       font-weight: bold;
-      margin-top: 20px;
-    }
-
-    .certo {
-      color: green;
-    }
-
-    .errado {
-      color: red;
-    }
-
-    #final {
-      font-size: 24px;
-      color: #800080;
-      margin-top: 30px;
+      font-size: 18px;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
 
-  <h1>Quiz de Matemática 🧠</h1>
-
-  <div id="quiz-container">
-    <div id="pergunta" class="pergunta"></div>
-    <div id="opcoes"></div>
-    <div id="feedback"></div>
-    <div id="final"></div>
-  </div>
+  <h1>Quiz Festival Folclórico de Parintins 🎭</h1>
+  <div id="quiz-container"></div>
+  <button onclick="startQuiz()">Jogar Novamente</button>
 
   <script>
-    const perguntas = [
+    const questions = [
       {
-        texto: "Quanto é 3 + 2?",
-        opcoes: ["4", "5", "6"],
-        correta: "5"
+        q: "Em que ano ocorreu o primeiro Festival Folclórico de Parintins?",
+        a: ["1960", "1965", "1970", "1975"],
+        c: 1
       },
       {
-        texto: "Quanto é 10 - 4?",
-        opcoes: ["6", "5", "4"],
-        correta: "6"
+        q: "Qual é o nome do local onde ocorrem as apresentações do festival?",
+        a: ["Sambódromo", "Bumbódromo", "Arena Amazônia", "Teatro Amazonas"],
+        c: 1
       },
       {
-        texto: "Quanto é 2 x 3?",
-        opcoes: ["5", "6", "7"],
-        correta: "6"
+        q: "Quantos espectadores o Bumbódromo pode acomodar?",
+        a: ["20 mil", "25 mil", "30 mil", "35 mil"],
+        c: 2
       },
       {
-        texto: "Quanto é 8 ÷ 2?",
-        opcoes: ["4", "6", "2"],
-        correta: "4"
+        q: "Em que mês é tradicionalmente realizado o Festival de Parintins?",
+        a: ["Maio", "Junho", "Julho", "Agosto"],
+        c: 1
+      },
+      {
+        q: "Qual foi o objetivo inicial da criação do festival em 1965?",
+        a: ["Promover o turismo", "Arrecadar fundos para a catedral", "Aniversário da cidade", "Comemorar a cultura indígena"],
+        c: 1
+      },
+      {
+        q: "Qual é a cor associada ao Boi Garantido?",
+        a: ["Azul", "Verde", "Vermelho", "Amarelo"],
+        c: 2
+      },
+      {
+        q: "Qual é o nome da música lançada pelo Boi Garantido que se tornou um sucesso nacional em 1996?",
+        a: ["Vermelho", "Tic Tic Tac", "Parintins Para o Mundo Ver", "Saga de Um Canoeiro"],
+        c: 0
+      },
+      {
+        q: "Qual é a cor associada ao Boi Caprichoso?",
+        a: ["Azul", "Vermelho", "Verde", "Amarelo"],
+        c: 0
+      },
+      {
+        q: "Qual personagem representa o xamã nas apresentações?",
+        a: ["Cunhã Poranga", "Sinhazinha da Fazenda", "Porta-Estandarte", "Pajé"],
+        c: 3
+      },
+      {
+        q: "Qual personagem representa a filha do fazendeiro nas apresentações?",
+        a: ["Cunhã Poranga", "Sinhazinha da Fazenda", "Porta-Estandarte", "Pajé"],
+        c: 1
       }
     ];
 
-    let indice = 0;
-    let pontos = 0;
+    let currentQuestions = [];
+    let currentQuestion = 0;
+    let score = 0;
 
-    function mostrarPergunta() {
-      const perguntaAtual = perguntas[indice];
-      document.getElementById("pergunta").textContent = perguntaAtual.texto;
+    function startQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      currentQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, 10);
+      showQuestion();
+    }
 
-      const opcoesDiv = document.getElementById("opcoes");
-      opcoesDiv.innerHTML = "";
-
-      perguntaAtual.opcoes.forEach(opcao => {
-        const botao = document.createElement("button");
-        botao.textContent = opcao;
-        botao.className = "opcao";
-        botao.onclick = () => verificarResposta(opcao);
-        opcoesDiv.appendChild(botao);
+    function showQuestion() {
+      const q = currentQuestions[currentQuestion];
+      let html = `<div class='question-container'><h3>${q.q}</h3>`;
+      q.a.forEach((alt, index) => {
+        html += `<button onclick="checkAnswer(${index})">${alt}</button><br>`;
       });
-
-      document.getElementById("feedback").textContent = "";
+      html += `</div>`;
+      document.getElementById("quiz-container").innerHTML = html;
     }
 
-    function verificarResposta(resposta) {
-      const correta = perguntas[indice].correta;
-      const feedback = document.getElementById("feedback");
-
-      if (resposta === correta) {
-        feedback.textContent = "✅ Acertou!";
-        feedback.className = "certo";
-        pontos++;
+    function checkAnswer(selected) {
+      const q = currentQuestions[currentQuestion];
+      const isCorrect = selected === q.c;
+      let feedbackHtml = `<div class="question-container">`;
+      if (isCorrect) {
+        score++;
+        feedbackHtml += `<p class="feedback" style="color:green;">✅ Acertou!</p>`;
       } else {
-        feedback.textContent = "❌ Errou!";
-        feedback.className = "errado";
+        feedbackHtml += `<p class="feedback" style="color:red;">❌ Errou! A resposta correta era: <strong>${q.a[q.c]}</strong></p>`;
       }
-
-      setTimeout(() => {
-        indice++;
-        if (indice < perguntas.length) {
-          mostrarPergunta();
-        } else {
-          finalizarQuiz();
-        }
-      }, 1000);
+      feedbackHtml += `<button onclick="nextQuestion()">Próxima</button></div>`;
+      document.getElementById("quiz-container").innerHTML = feedbackHtml;
     }
 
-    function finalizarQuiz() {
-      document.getElementById("pergunta").style.display = "none";
-      document.getElementById("opcoes").style.display = "none";
-      document.getElementById("feedback").style.display = "none";
-      document.getElementById("final").textContent =
-        `🎉 Fim do quiz! Você acertou ${pontos} de ${perguntas.length} perguntas.`;
+    function nextQuestion() {
+      currentQuestion++;
+      if (currentQuestion < currentQuestions.length) {
+        showQuestion();
+      } else {
+        document.getElementById("quiz-container").innerHTML =
+          `<h2>🎉 Você acertou ${score} de ${currentQuestions.length} perguntas!</h2>`;
+      }
     }
 
-    // Iniciar quiz
-    mostrarPergunta();
+    window.onload = startQuiz;
   </script>
 
 </body>
