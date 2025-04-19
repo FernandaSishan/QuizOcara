@@ -63,66 +63,61 @@
 <body>
   <img src="bumbalogo2.png" alt="Bumbalogo">
   <h1>Quiz do Festival de Parintins</h1>
+  <button onclick="connectBLE()">🔗 Conectar ao Bluetooth</button>
   <div id="quiz-container"></div>
   <button onclick="startQuiz()">🔄 Jogar Novamente</button>
 
   <script>
     const questions = [
-      {
-        q: "Em que ano ocorreu o primeiro Festival Folclórico de Parintins?",
-        a: ["1960", "1965", "1970", "1975"],
-        c: 1
-      },
-      {
-        q: "Qual é o nome do local onde ocorrem as apresentações do festival?",
-        a: ["Sambódromo", "Bumbódromo", "Arena Amazônia", "Teatro Amazonas"],
-        c: 1
-      },
-      {
-        q: "Quantos espectadores o Bumbódromo pode acomodar?",
-        a: ["20 mil", "25 mil", "30 mil", "35 mil"],
-        c: 2
-      },
-      {
-        q: "Em que mês é tradicionalmente realizado o Festival de Parintins?",
-        a: ["Maio", "Junho", "Julho", "Agosto"],
-        c: 1
-      },
-      {
-        q: "Qual foi o objetivo inicial da criação do festival em 1965?",
-        a: ["Promover o turismo", "Arrecadar fundos para a catedral", "Aniversário da cidade", "Comemorar a cultura indígena"],
-        c: 1
-      },
-      {
-        q: "Qual é a cor associada ao Boi Garantido?",
-        a: ["Azul", "Verde", "Vermelho", "Amarelo"],
-        c: 2
-      },
-      {
-        q: "Qual é o nome da música lançada pelo Boi Garantido que se tornou um sucesso nacional em 1996?",
-        a: ["Vermelho", "Tic Tic Tac", "Parintins Para o Mundo Ver", "Saga de Um Canoeiro"],
-        c: 0
-      },
-      {
-        q: "Qual é a cor associada ao Boi Caprichoso?",
-        a: ["Azul", "Vermelho", "Verde", "Amarelo"],
-        c: 0
-      },
-      {
-        q: "Qual personagem representa o xamã nas apresentações?",
-        a: ["Cunhã Poranga", "Sinhazinha da Fazenda", "Porta-Estandarte", "Pajé"],
-        c: 3
-      },
-      {
-        q: "Qual personagem representa a filha do fazendeiro nas apresentações?",
-        a: ["Cunhã Poranga", "Sinhazinha da Fazenda", "Porta-Estandarte", "Pajé"],
-        c: 1
-      }
+      { q: "Em que ano ocorreu o primeiro Festival Folclórico de Parintins?", a: ["1960", "1965", "1970", "1975"], c: 1 },
+      { q: "Qual é o nome do local onde ocorrem as apresentações do festival?", a: ["Sambódromo", "Bumbódromo", "Arena Amazônia", "Teatro Amazonas"], c: 1 },
+      { q: "Quantos espectadores o Bumbódromo pode acomodar?", a: ["20 mil", "25 mil", "30 mil", "35 mil"], c: 2 },
+      { q: "Em que mês é tradicionalmente realizado o Festival de Parintins?", a: ["Maio", "Junho", "Julho", "Agosto"], c: 1 },
+      { q: "Qual foi o objetivo inicial da criação do festival em 1965?", a: ["Promover o turismo", "Arrecadar fundos para a catedral", "Aniversário da cidade", "Comemorar a cultura indígena"], c: 1 },
+      { q: "Qual é a cor associada ao Boi Garantido?", a: ["Azul", "Verde", "Vermelho", "Amarelo"], c: 2 },
+      { q: "Qual é o nome da música lançada pelo Boi Garantido que se tornou um sucesso nacional em 1996?", a: ["Vermelho", "Tic Tic Tac", "Parintins Para o Mundo Ver", "Saga de Um Canoeiro"], c: 0 },
+      { q: "Qual é a cor associada ao Boi Caprichoso?", a: ["Azul", "Vermelho", "Verde", "Amarelo"], c: 0 },
+      { q: "Qual personagem representa o xamã nas apresentações?", a: ["Cunhã Poranga", "Sinhazinha da Fazenda", "Porta-Estandarte", "Pajé"], c: 3 },
+      { q: "Qual personagem representa a filha do fazendeiro nas apresentações?", a: ["Cunhã Poranga", "Sinhazinha da Fazenda", "Porta-Estandarte", "Pajé"], c: 1 }
     ];
 
     let currentQuestions = [];
     let currentQuestion = 0;
     let score = 0;
+
+    // Variáveis BLE
+    let device, server, service, characteristic;
+    const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
+    const CHARACTERISTIC_UUID = "abcd1234-ab12-cd34-ef56-abcdef123456";
+
+    async function connectBLE() {
+      try {
+        device = await navigator.bluetooth.requestDevice({
+          filters: [{ namePrefix: "ESP32" }],
+          optionalServices: [SERVICE_UUID]
+        });
+
+        server = await device.gatt.connect();
+        service = await server.getPrimaryService(SERVICE_UUID);
+        characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
+
+        alert("✅ Conectado com sucesso!");
+      } catch (error) {
+        alert("Erro ao conectar Bluetooth: " + error);
+        console.error(error);
+      }
+    }
+
+    async function sendBLEMessage(message) {
+      if (characteristic) {
+        try {
+          const encoder = new TextEncoder();
+          await characteristic.writeValue(encoder.encode(message));
+        } catch (e) {
+          console.error("Erro ao enviar mensagem BLE:", e);
+        }
+      }
+    }
 
     function startQuiz() {
       currentQuestion = 0;
@@ -141,16 +136,20 @@
       document.getElementById("quiz-container").innerHTML = html;
     }
 
-    function checkAnswer(selected) {
+    async function checkAnswer(selected) {
       const q = currentQuestions[currentQuestion];
       const isCorrect = selected === q.c;
       let feedbackHtml = `<div class="question-container">`;
+
       if (isCorrect) {
         score++;
         feedbackHtml += `<p class="feedback" style="color:green;">✅ Acertou!</p>`;
+        await sendBLEMessage("ACERTOU");
       } else {
         feedbackHtml += `<p class="feedback" style="color:red;">❌ Errou! A resposta correta era: <strong>${q.a[q.c]}</strong></p>`;
+        await sendBLEMessage("ERROU");
       }
+
       feedbackHtml += `<button onclick="nextQuestion()">Próxima</button></div>`;
       document.getElementById("quiz-container").innerHTML = feedbackHtml;
     }
