@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Jogo de Pintar - Parintins</title>
+  <style>
+    canvas {
+      border: 2px solid #000;
+      cursor: crosshair;
+    }
+    #colors {
+      margin: 10px 0;
+    }
+    .color-btn {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #000;
+      display: inline-block;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Pinte a figura do Festival de Parintins!</h2>
+
+<div id="colors">
+  <div class="color-btn" style="background: red;" onclick="setColor('red')"></div>
+  <div class="color-btn" style="background: blue;" onclick="setColor('blue')"></div>
+  <div class="color-btn" style="background: green;" onclick="setColor('green')"></div>
+  <div class="color-btn" style="background: yellow;" onclick="setColor('yellow')"></div>
+  <div class="color-btn" style="background: black;" onclick="setColor('black')"></div>
+</div>
+
+<canvas id="paintCanvas" width="600" height="500"></canvas>
+
+<script>
+  const canvas = document.getElementById('paintCanvas');
+  const ctx = canvas.getContext('2d');
+  let painting = false;
+  let currentColor = 'black';
+
+  // Lista de imagens para pintar
+  const imagens = [
+    'img/caprichoso.png',
+    'img/caprichoso2.png',
+    'img/catedral.png'
+  ];
+
+  // Escolhe uma imagem aleatória
+  const imagemSelecionada = imagens[Math.floor(Math.random() * imagens.length)];
+
+  // Carrega a imagem
+  const img = new Image();
+  img.src = imagemSelecionada;
+  img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+  // Pintura
+  function setColor(color) {
+    currentColor = color;
+  }
+
+  function startPosition(e) {
+    painting = true;
+    draw(e);
+  }
+
+  function finishedPosition() {
+    painting = false;
+    ctx.beginPath();
+  }
+
+  function draw(e) {
+    if (!painting) return;
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = currentColor;
+
+    const rect = canvas.getBoundingClientRect();
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+  }
+
+  canvas.addEventListener('mousedown', startPosition);
+  canvas.addEventListener('mouseup', finishedPosition);
+  canvas.addEventListener('mousemove', draw);
+</script>
+
+</body>
+</html>
