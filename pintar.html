@@ -4,19 +4,39 @@
   <meta charset="UTF-8">
   <title>Jogo de Pintar - Parintins</title>
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
     canvas {
       border: 2px solid #000;
-      cursor: crosshair;
+      cursor: pointer;
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      touch-action: none;
     }
-    #colors {
-      margin: 10px 0;
+    #toolbar {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 10px;
     }
-    .color-btn {
+    .color-btn, .tool-btn {
       width: 30px;
       height: 30px;
-      border: 1px solid #000;
-      display: inline-block;
+      border: 2px solid #000;
+      margin: 5px;
       cursor: pointer;
+    }
+    .tool-btn img {
+      width: 100%;
+      height: 100%;
+    }
+    .active {
+      border: 3px solid gold;
     }
   </style>
 </head>
@@ -24,12 +44,26 @@
 
 <h2>Pinte a figura do Festival de Parintins!</h2>
 
-<div id="colors">
+<div id="toolbar">
+  <!-- Paleta de cores -->
   <div class="color-btn" style="background: red;" onclick="setColor('red')"></div>
   <div class="color-btn" style="background: blue;" onclick="setColor('blue')"></div>
   <div class="color-btn" style="background: green;" onclick="setColor('green')"></div>
   <div class="color-btn" style="background: yellow;" onclick="setColor('yellow')"></div>
   <div class="color-btn" style="background: black;" onclick="setColor('black')"></div>
+  <div class="color-btn" style="background: orange;" onclick="setColor('orange')"></div>
+  <div class="color-btn" style="background: purple;" onclick="setColor('purple')"></div>
+  <div class="color-btn" style="background: pink;" onclick="setColor('pink')"></div>
+  <div class="color-btn" style="background: #00FFFF;" onclick="setColor('#00FFFF')"></div>
+  <div class="color-btn" style="background: #A52A2A;" onclick="setColor('#A52A2A')"></div>
+
+  <!-- Ferramentas -->
+  <div class="tool-btn" onclick="setTool('brush')" id="brushBtn" title="Pincel">
+    <img src="lapis.webp" alt="Pincel">
+  </div>
+  <div class="tool-btn" onclick="setTool('bucket')" id="bucketBtn" title="Balde de tinta">
+    <img src="balde.jpg" alt="Balde">
+  </div>
 </div>
 
 <canvas id="paintCanvas" width="600" height="500"></canvas>
@@ -37,55 +71,152 @@
 <script>
   const canvas = document.getElementById('paintCanvas');
   const ctx = canvas.getContext('2d');
-  let painting = false;
   let currentColor = 'black';
+  let currentTool = 'brush';
+  let painting = false;
 
-  // Lista de imagens para pintar
-  const imagens = [
-    'img/caprichoso.png',
-    'img/caprichoso2.png',
-    'img/catedral.png'
-  ];
+  const brushBtn = document.getElementById('brushBtn');
+  const bucketBtn = document.getElementById('bucketBtn');
 
-  // Escolhe uma imagem aleatória
-  const imagemSelecionada = imagens[Math.floor(Math.random() * imagens.length)];
-
-  // Carrega a imagem
-  const img = new Image();
-  img.src = imagemSelecionada;
-  img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-  // Pintura
   function setColor(color) {
     currentColor = color;
   }
 
-  function startPosition(e) {
-    painting = true;
-    draw(e);
+  function setTool(tool) {
+    currentTool = tool;
+    brushBtn.classList.toggle('active', tool === 'brush');
+    bucketBtn.classList.toggle('active', tool === 'bucket');
   }
 
-  function finishedPosition() {
-    painting = false;
-    ctx.beginPath();
+  function hexToRgb(color) {
+    const temp = document.createElement("div");
+    temp.style.color = color;
+    document.body.appendChild(temp);
+    const rgb = getComputedStyle(temp).color;
+    document.body.removeChild(temp);
+
+    const result = rgb.match(/\d+/g);
+    return {
+      r: parseInt(result[0]),
+      g: parseInt(result[1]),
+      b: parseInt(result[2])
+    };
   }
 
-  function draw(e) {
-    if (!painting) return;
-    ctx.lineWidth = 5;
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = currentColor;
+  function getPixel(imageData, x, y) {
+    const index = (y * imageData.width + x) * 4;
+    return {
+      r: imageData.data[index],
+      g: imageData.data[index + 1],
+      b: imageData.data[index + 2],
+      a: imageData.data[index + 3]
+    };
+  }
 
+  function setPixel(imageData, x, y, color) {
+    const index = (y * imageData.width + x) * 4;
+    imageData.data[index] = color.r;
+    imageData.data[index + 1] = color.g;
+    imageData.data[index + 2] = color.b;
+    imageData.data[index + 3] = 255;
+  }
+
+  function colorsMatch(a, b) {
+    return a.r === b.r && a.g === b.g && a.b === b.b;
+  }
+
+  function floodFill(x, y, fillColor) {
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const targetColor = getPixel(imageData, x, y);
+    if (colorsMatch(targetColor, fillColor)) return;
+
+    const stack = [{x, y}];
+
+    while (stack.length > 0) {
+      const {x, y} = stack.pop();
+      const current = getPixel(imageData, x, y);
+
+      if (colorsMatch(current, targetColor)) {
+        setPixel(imageData, x, y, fillColor);
+
+        if (x > 0) stack.push({x: x - 1, y});
+        if (x < imageData.width - 1) stack.push({x: x + 1, y});
+        if (y > 0) stack.push({x, y: y - 1});
+        if (y < imageData.height - 1) stack.push({x, y: y + 1});
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  }
+
+  const img = new Image();
+  img.src = "img/catedral.png";
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  };
+
+  function getCanvasPos(e) {
     const rect = canvas.getBoundingClientRect();
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
   }
 
-  canvas.addEventListener('mousedown', startPosition);
-  canvas.addEventListener('mouseup', finishedPosition);
-  canvas.addEventListener('mousemove', draw);
+  function drawBrush(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, 10, 0, 2 * Math.PI);
+    ctx.fillStyle = currentColor;
+    ctx.fill();
+  }
+
+  canvas.addEventListener('mousedown', e => {
+    if (currentTool === 'brush') {
+      painting = true;
+      const pos = getCanvasPos(e);
+      drawBrush(pos.x, pos.y);
+    }
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    if (painting && currentTool === 'brush') {
+      const pos = getCanvasPos(e);
+      drawBrush(pos.x, pos.y);
+    }
+  });
+
+  canvas.addEventListener('mouseup', () => painting = false);
+  canvas.addEventListener('mouseleave', () => painting = false);
+
+  canvas.addEventListener('touchstart', e => {
+    if (currentTool === 'brush') {
+      painting = true;
+      const pos = getCanvasPos(e);
+      drawBrush(pos.x, pos.y);
+    }
+  });
+
+  canvas.addEventListener('touchmove', e => {
+    if (painting && currentTool === 'brush') {
+      const pos = getCanvasPos(e);
+      drawBrush(pos.x, pos.y);
+      e.preventDefault();
+    }
+  });
+
+  canvas.addEventListener('touchend', () => painting = false);
+
+  canvas.addEventListener('click', e => {
+    if (currentTool === 'bucket') {
+      const pos = getCanvasPos(e);
+      floodFill(Math.floor(pos.x), Math.floor(pos.y), hexToRgb(currentColor));
+    }
+  });
+
+  setTool('brush');
 </script>
 
 </body>
