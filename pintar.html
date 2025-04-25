@@ -12,7 +12,6 @@
     }
     canvas {
       border: 2px solid #000;
-      cursor: pointer;
       width: 100%;
       max-width: 600px;
       height: auto;
@@ -22,16 +21,24 @@
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
-      margin: 10px;
+      gap: 10px;
+      padding: 10px;
     }
-    .color-btn, .tool-btn {
-      width: 30px;
-      height: 30px;
+    .color-btn, .tool-btn, .clear-btn {
+      width: 40px;
+      height: 40px;
       border: 2px solid #000;
-      margin: 5px;
+      border-radius: 5px;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
     }
-    .tool-btn img {
+    .color-btn {
+      border-radius: 50%;
+    }
+    .tool-btn img, .clear-btn img {
       width: 100%;
       height: 100%;
     }
@@ -64,6 +71,11 @@
   <div class="tool-btn" onclick="setTool('bucket')" id="bucketBtn" title="Balde de tinta">
     <img src="balde.jpg" alt="Balde">
   </div>
+
+  <!-- Limpar -->
+  <div class="clear-btn" onclick="resetCanvas()" title="Limpar">
+    🧹
+  </div>
 </div>
 
 <canvas id="paintCanvas" width="600" height="500"></canvas>
@@ -74,6 +86,15 @@
   let currentColor = 'black';
   let currentTool = 'brush';
   let painting = false;
+  let img = new Image();
+  img.src = "img/catedral.png";
+  img.crossOrigin = "anonymous";
+
+  function drawImage() {
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  }
+
+  img.onload = drawImage;
 
   const brushBtn = document.getElementById('brushBtn');
   const bucketBtn = document.getElementById('bucketBtn');
@@ -88,13 +109,16 @@
     bucketBtn.classList.toggle('active', tool === 'bucket');
   }
 
+  function resetCanvas() {
+    drawImage();
+  }
+
   function hexToRgb(color) {
     const temp = document.createElement("div");
     temp.style.color = color;
     document.body.appendChild(temp);
     const rgb = getComputedStyle(temp).color;
     document.body.removeChild(temp);
-
     const result = rgb.match(/\d+/g);
     return {
       r: parseInt(result[0]),
@@ -135,10 +159,8 @@
     while (stack.length > 0) {
       const {x, y} = stack.pop();
       const current = getPixel(imageData, x, y);
-
       if (colorsMatch(current, targetColor)) {
         setPixel(imageData, x, y, fillColor);
-
         if (x > 0) stack.push({x: x - 1, y});
         if (x < imageData.width - 1) stack.push({x: x + 1, y});
         if (y > 0) stack.push({x, y: y - 1});
@@ -148,13 +170,6 @@
 
     ctx.putImageData(imageData, 0, 0);
   }
-
-  const img = new Image();
-  img.src = "img/catedral.png";
-  img.crossOrigin = "anonymous";
-  img.onload = () => {
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  };
 
   function getCanvasPos(e) {
     const rect = canvas.getBoundingClientRect();
@@ -168,7 +183,7 @@
 
   function drawBrush(x, y) {
     ctx.beginPath();
-    ctx.arc(x, y, 10, 0, 2 * Math.PI);
+    ctx.arc(x, y, 8, 0, 2 * Math.PI);
     ctx.fillStyle = currentColor;
     ctx.fill();
   }
@@ -196,6 +211,7 @@
       painting = true;
       const pos = getCanvasPos(e);
       drawBrush(pos.x, pos.y);
+      e.preventDefault();
     }
   });
 
