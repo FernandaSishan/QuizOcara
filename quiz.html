@@ -58,14 +58,33 @@
       margin-top: 30px;
       color: #4a4a4a;
     }
+    .player-info {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
   <img src="bumbalogo2.png" alt="Bumbalogo">
   <h1>Quiz do Festival de Parintins</h1>
-  <button onclick="connectBLE()">🔗 Conectar ao Bluetooth</button>
+
+  <!-- Seção para capturar o nome e a preferência do boi -->
+  <div id="player-info" class="player-info">
+    <label for="player-name">Nome do Jogador:</label>
+    <input type="text" id="player-name" placeholder="Digite seu nome">
+    <br><br>
+    <label for="boi-choice">Escolha seu Boi:</label>
+    <select id="boi-choice">
+      <option value="Garantido">Garantido</option>
+      <option value="Caprichoso">Caprichoso</option>
+    </select>
+    <br><br>
+    <button onclick="startQuiz()">Iniciar Quiz</button>
+  </div>
+
   <div id="quiz-container"></div>
-  <button onclick="startQuiz()">🔄 Jogar Novamente</button>
   <button onclick="window.location.href='index.html'">🏠 Voltar ao Menu</button>
 
   <script>
@@ -85,41 +104,22 @@
     let currentQuestions = [];
     let currentQuestion = 0;
     let score = 0;
-
-    let device, server, service, characteristic;
-    const SERVICE_UUID = "12345678-1234-1234-1234-1234567890ab";
-    const CHARACTERISTIC_UUID = "abcd1234-ab12-cd34-ef56-abcdef123456";
-
-    async function connectBLE() {
-      try {
-        device = await navigator.bluetooth.requestDevice({
-          filters: [{ namePrefix: "ESP32" }],
-          optionalServices: [SERVICE_UUID]
-        });
-
-        server = await device.gatt.connect();
-        service = await server.getPrimaryService(SERVICE_UUID);
-        characteristic = await service.getCharacteristic(CHARACTERISTIC_UUID);
-
-        alert("✅ Conectado com sucesso!");
-      } catch (error) {
-        alert("Erro ao conectar Bluetooth: " + error);
-        console.error(error);
-      }
-    }
-
-    async function sendBLEMessage(message) {
-      if (characteristic) {
-        try {
-          const encoder = new TextEncoder();
-          await characteristic.writeValue(encoder.encode(message));
-        } catch (e) {
-          console.error("Erro ao enviar mensagem BLE:", e);
-        }
-      }
-    }
+    let playerName = "";
+    let playerBoi = "";
 
     function startQuiz() {
+      // Captura o nome e boi do jogador
+      playerName = document.getElementById("player-name").value;
+      playerBoi = document.getElementById("boi-choice").value;
+
+      // Verifica se o nome foi inserido
+      if (!playerName) {
+        alert("Por favor, insira seu nome para começar!");
+        return;
+      }
+
+      // Esconde a seção de informações do jogador e exibe o quiz
+      document.getElementById("player-info").style.display = "none";
       currentQuestion = 0;
       score = 0;
       currentQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, 10);
@@ -136,7 +136,7 @@
       document.getElementById("quiz-container").innerHTML = html;
     }
 
-    async function checkAnswer(selected) {
+    function checkAnswer(selected) {
       const q = currentQuestions[currentQuestion];
       const isCorrect = selected === q.c;
       let feedbackHtml = `<div class="question-container">`;
@@ -144,10 +144,8 @@
       if (isCorrect) {
         score++;
         feedbackHtml += `<p class="feedback" style="color:green;">✅ Acertou!</p>`;
-        await sendBLEMessage("ACERTOU");
       } else {
         feedbackHtml += `<p class="feedback" style="color:red;">❌ Errou! A resposta correta era: <strong>${q.a[q.c]}</strong></p>`;
-        await sendBLEMessage("ERROU");
       }
 
       feedbackHtml += `<button onclick="nextQuestion()">Próxima</button></div>`;
@@ -160,11 +158,9 @@
         showQuestion();
       } else {
         document.getElementById("quiz-container").innerHTML =
-          `<div class="score-result">🎉 Você acertou ${score} de ${currentQuestions.length} perguntas!</div>`;
+          `<div class="score-result">🎉 ${playerName}, você acertou ${score} de ${currentQuestions.length} perguntas!<br><strong>Boi Preferido: ${playerBoi}</strong></div>`;
       }
     }
-
-    window.onload = startQuiz;
   </script>
 </body>
 </html>

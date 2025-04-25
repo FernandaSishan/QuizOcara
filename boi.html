@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Boi Corredor - Festival de Parintins</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: linear-gradient(to top, #ffefd5, #87cefa);
+      font-family: 'Comic Sans MS', cursive;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #game {
+      width: 90vw;
+      max-width: 400px;
+      height: 45vh;
+      max-height: 300px;
+      background: url('fundofloresta.jpg') no-repeat center/cover;
+      border: 4px dashed #ff0000;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    #boi {
+      width: 15%;
+      height: 20%;
+      max-width: 60px;
+      max-height: 60px;
+      position: absolute;
+      bottom: 0;
+      left: 10%;
+      background-image: url('garantidojogo.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+    #obstaculo {
+      width: 12%;
+      height: 20%;
+      max-width: 50px;
+      max-height: 60px;
+      position: absolute;
+      bottom: 0;
+      left: 100%;
+      background-image: url('trofeu.png');
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+    #mensagem {
+      font-size: 1.2rem;
+      color: #0000cd;
+      text-shadow: 1px 1px #fff;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<div id="game">
+  <div id="boi"></div>
+  <div id="obstaculo"></div>
+</div>
+<div id="mensagem"></div>
+
+<script>
+  const boi = document.getElementById("boi");
+  const obstaculo = document.getElementById("obstaculo");
+  const mensagem = document.getElementById("mensagem");
+  let pulando = false;
+  let gameAtivo = true;
+
+  const somPulo = new Audio('pulo.mp3');
+  const somColisao = new Audio('colisao.mp3');
+
+  function pular() {
+    if (pulando || !gameAtivo) return;
+    pulando = true;
+    somPulo.play();
+    let altura = 0;
+    const subir = setInterval(() => {
+      if (altura >= 100) {
+        clearInterval(subir);
+        const cair = setInterval(() => {
+          if (altura <= 0) {
+            clearInterval(cair);
+            pulando = false;
+          } else {
+            altura -= 5;
+            boi.style.bottom = altura + "px";
+          }
+        }, 20);
+      } else {
+        altura += 5;
+        boi.style.bottom = altura + "px";
+      }
+    }, 20);
+  }
+
+  function moverObstaculo() {
+    let pos = window.innerWidth;
+    const loop = setInterval(() => {
+      if (!gameAtivo) return clearInterval(loop);
+      pos -= 5;
+      if (pos < -50) pos = window.innerWidth + Math.random() * 300;
+      obstaculo.style.left = pos + "px";
+
+      const boiTop = parseInt(window.getComputedStyle(boi).bottom);
+      if (pos < 120 && pos > 50 && boiTop < 50) {
+        somColisao.play();
+        mensagem.textContent = "💥 Boi bateu no obstáculo! Reiniciando...";
+        gameAtivo = false;
+        setTimeout(() => {
+          mensagem.textContent = "";
+          boi.style.bottom = "0px";
+          gameAtivo = true;
+          moverObstaculo();
+        }, 2000);
+        clearInterval(loop);
+      }
+    }, 20);
+  }
+
+  document.addEventListener("keydown", e => {
+    if (e.code === "Space") pular();
+  });
+  document.addEventListener("touchstart", () => {
+    pular();
+  });
+
+  moverObstaculo();
+</script>
+
+</body>
+</html>
