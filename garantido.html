@@ -23,23 +23,25 @@
     }
     #game {
       width: 90vw;
-      max-width: 400px;
-      height: 45vh;
-      max-height: 300px;
-      background: url('fundofloresta.jpg') no-repeat center/cover;
+      max-width: 900px;
+      height: 120vh;
+      max-height: 600px;
+      background: url('fundofloresta.jpg') repeat-x center/cover;
       border: 4px dashed #ff0000;
       border-radius: 12px;
       box-shadow: 0 0 10px rgba(0,0,0,0.2);
       position: relative;
       overflow: hidden;
+      background-position: 0 0;
     }
+    
     #boi {
-      width: 100px;
-      height: 100px;
+      width: 150px;
+      height: 150px;
       position: absolute;
-      bottom: 10px; /* Ajuste para alinhar com o troféu */
-      left: 10%;
-      background-image: url('garantidojogo.png');
+      bottom: 1px; /* Ajuste para alinhar com o troféu */
+      left: 0%;
+      background-image: url('gifgarantido.gif');
       background-size: contain;
       background-repeat: no-repeat;
     }
@@ -47,7 +49,7 @@
       width: 60px;
       height: 80px;
       position: absolute;
-      bottom: 10px; /* Mesmo valor de bottom que o boi */
+      bottom: 40px; /* Mesmo valor de bottom que o boi */
       left: 100%;
       background-image: url('trofeu.png');
       background-size: contain;
